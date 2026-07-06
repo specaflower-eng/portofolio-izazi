@@ -369,6 +369,8 @@ const MODAL_CONTENT = {
   'modal-edu-ccit': {
     role: 'Professional Certificate in Information Technology — IoT Track',
     title: 'CCIT, Universitas Indonesia',
+    overviewLabel: 'Program Overview',
+    featuresLabel: 'What I Studied',
     images: [
       '/assets/ccit/cover.jpg',
       '/assets/ccit/1.jpg',
@@ -806,17 +808,15 @@ function App() {
               style={{ transitionDelay: '0.1s' }}
               onClick={() => openModal('modal-edu-ccit')}
             >
-              <div className="edu-img-wrap">
-                <img src="/assets/ccit/cover.jpg" alt="CCIT Universitas Indonesia" />
+              <div className="edu-thumb">
+                <img src="/assets/ccit/cover.jpg" alt="CCIT Universitas Indonesia graduation" />
               </div>
-              <div className="edu-content">
-                <span className="edu-period">2023 to 2025</span>
-                <h3>CCIT, Universitas Indonesia</h3>
-                <h4>Professional Certificate, Information Technology — IoT Track</h4>
-                <p>A 2-year continuing education program at the Center for Computing and Information Technology (CCIT), Faculty of Engineering, Universitas Indonesia. Covered the full computing stack from programming and databases to networking, embedded systems, and IoT platforms.</p>
-                <div className="edu-badge">GPA 3.39 / 4.0</div>
-                <span className="edu-cta">View Details →</span>
-              </div>
+              <span className="edu-period">2023 to 2025</span>
+              <h3>CCIT, Universitas Indonesia</h3>
+              <h4>Professional Certificate, Information Technology — IoT Track</h4>
+              <p>A 2-year continuing education program at the Center for Computing and Information Technology (CCIT), Faculty of Engineering, Universitas Indonesia. Covered the full computing stack from programming and databases to networking, embedded systems, and IoT platforms.</p>
+              <div className="edu-badge">GPA 3.39 / 4.0</div>
+              <span className="edu-cta">View Details →</span>
             </div>
           </div>
         </div>
@@ -937,10 +937,10 @@ function App() {
                 </div>
               )}
 
-              <div className="modal-section-title">Project Overview</div>
+              <div className="modal-section-title">{m.overviewLabel || 'Project Overview'}</div>
               <p className="modal-text">{m.overview}</p>
 
-              <div className="modal-section-title">Key Features and Implementation</div>
+              <div className="modal-section-title">{m.featuresLabel || 'Key Features and Implementation'}</div>
               <ul className="modal-feature-list">
                 {m.features.map(f => (
                   <li key={f.title}>
