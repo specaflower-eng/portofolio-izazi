@@ -14,35 +14,37 @@ const NAV = [
 
 const MARQUEE = [
   'ESP32', 'React.js', 'MQTT', 'Laravel', 'Python',
-  'Cisco', 'Firebase', 'Flutter', 'Arduino',
-  'Linux Server', 'YOLOv8', 'IoT Engineering', 'Network Design',
+  'Cisco', 'Firebase', 'Flutter', 'Burp Suite',
+  'Linux Server', 'YOLOv8', 'IoT Engineering', 'Web Security',
 ];
 
 const FACTS = [
   { count: 3.89, decimal: true,  suffix: '',  lbl: 'GPA / 4.0' },
   { count: 8,    decimal: false, suffix: '+', lbl: 'Projects Built' },
   { count: 7,    decimal: false, suffix: '+', lbl: 'Certifications' },
-  { count: 34,   decimal: false, suffix: '+', lbl: 'Technologies' },
+  { count: 30,   decimal: false, suffix: '+', lbl: 'Technologies' },
 ];
 
 const SKILLS = [
   {
-    title: 'Embedded & IoT',
-    items: ['ESP32','Raspberry Pi','Arduino','MQTT Protocol','RFID MFRC522',
-            'HC-SR04 Ultrasonic','DHT Sensors','Firebase RTDB','ESP8266',
-            'Circuit Design','Edge Computing'],
+    title: 'IoT & Embedded Systems',
+    items: ['ESP32 & Raspberry Pi','Embedded C / C++','MQTT Protocol',
+            'Edge Computing','Sensor Integration','Circuit Design',
+            'Wireless Sensor Networks','Firebase RTDB'],
   },
   {
-    title: 'Software Development',
-    items: ['C / C++','Python','PHP (Laravel)','JavaScript','React.js',
-            'Java (Android)','Flutter','MySQL','SQLite','Docker',
-            'Git / GitHub','YOLOv8 AI'],
+    title: 'Software & AI Engineering',
+    items: ['Python','JavaScript / React.js','PHP (Laravel)',
+            'REST API Development','Computer Vision (YOLOv8 / YOLO11)',
+            'Java (Android)','Flutter','MySQL','Docker','Git / GitHub'],
   },
   {
-    title: 'Networking & Security',
-    items: ['Linux Server','Bash Scripting','Cisco Architecture','DNS Config',
-            'UFW Firewall','Apache2','Ubuntu Server','Kali Linux',
-            'TUI Development','Cronjobs'],
+    title: 'Networking & Cybersecurity',
+    items: ['Cisco Routing & Switching','VLAN & Subnetting',
+            'Linux Server Administration','Bash Scripting',
+            'Web Penetration Testing','Burp Suite','Nmap','Wireshark',
+            'OWASP Top 10','Bug Bounty Hunting','PortSwigger Academy',
+            'Kali Linux'],
   },
 ];
 
