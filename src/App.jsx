@@ -482,6 +482,19 @@ function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [activeModal, lightboxSrc]);
 
+  /* ── Image protection: block right-click save & drag on all photos ── */
+  useEffect(() => {
+    const guard = e => {
+      if (e.target.tagName === 'IMG') e.preventDefault();
+    };
+    document.addEventListener('contextmenu', guard);
+    document.addEventListener('dragstart', guard);
+    return () => {
+      document.removeEventListener('contextmenu', guard);
+      document.removeEventListener('dragstart', guard);
+    };
+  }, []);
+
   const openModal    = id => { setActiveModal(id); document.body.style.overflow = 'hidden'; };
   const closeModal   = ()  => { setActiveModal(null); document.body.style.overflow = ''; };
   const overlayClick = e  => { if (e.target.classList.contains('modal-overlay')) closeModal(); };
