@@ -1,1094 +1,955 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 
+/* ─── DATA ─── */
+const NAV = [
+  { href: '#hero',     label: 'Home' },
+  { href: '#about',    label: 'About' },
+  { href: '#skills',   label: 'Skills' },
+  { href: '#projects', label: 'Projects' },
+  { href: '#timeline', label: 'Education' },
+  { href: '#certs',    label: 'Certifications' },
+  { href: '#contact',  label: 'Contact' },
+];
+
+const MARQUEE = [
+  'ESP32', 'React.js', 'MQTT', 'Laravel', 'Python',
+  'Cisco', 'Firebase', 'Flutter', 'Arduino',
+  'Linux Server', 'YOLOv8', 'IoT Engineering', 'Network Design',
+];
+
+const FACTS = [
+  { count: 3.89, decimal: true,  suffix: '',  lbl: 'GPA / 4.0' },
+  { count: 8,    decimal: false, suffix: '+', lbl: 'Projects Built' },
+  { count: 7,    decimal: false, suffix: '+', lbl: 'Certifications' },
+  { count: 34,   decimal: false, suffix: '+', lbl: 'Technologies' },
+];
+
+const SKILLS = [
+  {
+    title: 'Embedded & IoT',
+    items: ['ESP32','Raspberry Pi','Arduino','MQTT Protocol','RFID MFRC522',
+            'HC-SR04 Ultrasonic','DHT Sensors','Firebase RTDB','ESP8266',
+            'Circuit Design','Edge Computing'],
+  },
+  {
+    title: 'Software Development',
+    items: ['C / C++','Python','PHP (Laravel)','JavaScript','React.js',
+            'Java (Android)','Flutter','MySQL','SQLite','Docker',
+            'Git / GitHub','YOLOv8 AI'],
+  },
+  {
+    title: 'Networking & Security',
+    items: ['Linux Server','Bash Scripting','Cisco Architecture','DNS Config',
+            'UFW Firewall','Apache2','Ubuntu Server','Kali Linux',
+            'TUI Development','Cronjobs'],
+  },
+];
+
+const PROJECTS = [
+  {
+    id: 'modal-p1',
+    img: '/assets/classroom/foto.jpg',
+    tags: ['IoT', 'YOLOv8 AI', 'React.js'],
+    title: 'Smart Classroom Monitoring & Attendance',
+    desc: 'End-to-end intelligent system for real-time class occupancy tracking via AI camera and RFID lecturer validation over MQTT.',
+    featured: true,
+  },
+  {
+    id: 'modal-p2',
+    img: '/assets/z car/zcar.jpg',
+    tags: ['Robotics', 'ESP32', 'Flutter'],
+    title: 'Smart Car 4-Mode Controller',
+    desc: 'ESP32 robot car with four operating modes, controlled in real-time from a Flutter Android app via Firebase RTDB.',
+    featured: true,
+  },
+  {
+    id: 'modal-nutricab',
+    img: '/assets/nutricab/cover.jpg',
+    tags: ['Edge AI / YOLO11', 'Raspberry Pi', 'MQTT'],
+    title: 'NutriCab Smart Farming System',
+    desc: 'End-to-end smart-farming system: on-device YOLO11 AI diagnoses leaf disease while ESP32 nodes auto-irrigate crops, engineered to stay online through internet and router failures.',
+    featured: true,
+  },
+  {
+    id: 'modal-p3',
+    img: '/assets/parking/foto.jpeg',
+    tags: ['WSN', 'ESP8266', 'Sensors'],
+    title: 'Smart Parking System with WSN IoT',
+    desc: 'Wireless sensor network for smart parking lot management using distributed ESP8266 nodes, IR sensors, and RFID gate.',
+  },
+  {
+    id: 'modal-p4',
+    img: '/assets/dustbin/buka.png',
+    tags: ['Embedded', 'Arduino', 'C++'],
+    title: 'Automatic Smart Dustbin',
+    desc: 'Touchless hardware prototype using HC-SR04 ultrasonic sensor and servo PWM for smooth automated lid actuation.',
+  },
+  {
+    id: 'modal-p5',
+    img: '/assets/cofeeshop/topologi.png',
+    tags: ['Network Design', 'Cisco'],
+    title: 'Smart Coffee Shop Network Sim',
+    desc: 'Cisco Packet Tracer simulation of a segmented IoT network with VLAN, smart AC automation, and motion-triggered doors.',
+  },
+  {
+    id: 'modal-p6',
+    img: '/assets/libraryz/dashboard.jpg',
+    tags: ['Laravel', 'MySQL', 'MVC'],
+    title: 'Library Management System',
+    desc: 'Full-stack web app with Laravel MVC, RBAC authentication, relational MySQL ERD, and automated fine calculation.',
+  },
+  {
+    id: 'modal-p7',
+    img: '/assets/libraryz/1.jpg',
+    tags: ['Android Java', 'Firebase'],
+    title: 'Cinema App, Watchlist Tracker',
+    desc: 'Native Android app synced to Firebase RTDB for managing a personal movie watchlist with REST API integration.',
+  },
+  {
+    id: 'modal-p9',
+    img: '/assets/bash/main.jpg',
+    tags: ['Bash', 'Linux', 'Automation'],
+    title: 'DNS Resolver and Monitoring Script',
+    desc: 'Interactive Bash TUI utility for DNS query analysis and automated cronjob ping monitoring with timestamped log reports.',
+  },
+];
+
+const CERTS = [
+  {
+    img: '/assets/certs/ccna-srwe.png',
+    title: 'CCNA: Switching, Routing & Wireless Essentials',
+    issuer: 'Cisco · Jakarta State Polytechnic',
+    year: '2026',
+    desc: 'Advanced LAN switching, inter-VLAN routing, and wireless network configuration.',
+  },
+  {
+    img: '/assets/certs/ccna-intro-networks.png',
+    title: 'CCNA: Introduction to Networks',
+    issuer: 'Cisco · Jakarta State Polytechnic',
+    year: '2026',
+    desc: 'Network fundamentals, IP addressing, and the protocols behind reliable connectivity.',
+  },
+  {
+    img: '/assets/certs/junior-cybersecurity.png',
+    title: 'Junior Cyber Security',
+    issuer: 'Digitalent · Komdigi RI',
+    year: '2025',
+    desc: 'Government VSGA program covering core defensive security practices and threat handling.',
+  },
+  {
+    img: '/assets/certs/intro-cybersecurity.png',
+    title: 'Introduction to Cybersecurity',
+    issuer: 'Cisco Networking Academy',
+    year: '2025',
+    desc: 'Threat landscape, attack vectors, and the principles of protecting data and infrastructure.',
+  },
+  {
+    img: '/assets/certs/web-security-pentest.png',
+    title: 'Basic Web Security & Pentesting',
+    issuer: 'Web Security Program',
+    year: '2025',
+    desc: 'Web vulnerability assessment and penetration-testing basics to find and fix system flaws.',
+  },
+  {
+    img: '/assets/certs/robotic-iot.png',
+    title: 'Robotic: Internet of Things',
+    issuer: 'BISA AI Academy',
+    year: '2025',
+    desc: 'Hands-on IoT and robotics fundamentals, from sensor integration to connected device control.',
+  },
+  {
+    img: '/assets/certs/intro-iot.png',
+    title: 'Introduction to IoT & Digital Transformation',
+    issuer: 'Cisco Networking Academy',
+    year: '2024',
+    desc: 'How connected devices and data drive automation and digital transformation.',
+  },
+];
+
+const EXPERTISE = [
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+      </svg>
+    ),
+    title: 'IoT & Embedded',
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <path d="M8 21h8M12 17v4"/>
+      </svg>
+    ),
+    title: 'Network Engineering',
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
+      </svg>
+    ),
+    title: 'Full-Stack Development',
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+      </svg>
+    ),
+    title: 'Cybersecurity',
+  },
+];
+
+/* ─── MODAL DATA ─── */
+const MODAL_CONTENT = {
+  'modal-p1': {
+    role: 'Lead Developer & AI / Hardware Integrator',
+    title: 'Smart Classroom Monitoring & Attendance Validation',
+    images: [
+      '/assets/classroom/cara kerja.jpeg',
+      '/assets/classroom/foto.jpg',
+      '/assets/classroom/dashboard.jpg',
+      '/assets/classroom/admin.jpg',
+      '/assets/classroom/hardware.jpg',
+      '/assets/classroom/topologi.jpg',
+    ],
+    overview: 'An end-to-end intelligent system combining Edge AI computing with IoT microcontrollers to solve manual attendance inefficiencies and maximize classroom utilization. Data is processed locally before relaying to a central server, reducing latency and internet dependency.',
+    features: [
+      { title: 'Edge AI with YOLOv8', desc: 'Deep learning model deployed directly on Raspberry Pi. Processes live video frames locally for real-time student occupancy counting without cloud latency.' },
+      { title: 'ESP32 Gateway Hardware', desc: 'Acts as the local RFID reader gateway, receiving card inputs from the classroom entrance and forwarding validated UIDs over MQTT.' },
+      { title: 'RFID MFRC522 Authentication', desc: 'C++ programmed radio frequency module that reads lecturer card UIDs to activate and authenticate each class session.' },
+      { title: 'MQTT Lightweight Protocol', desc: 'Data transmission from ESP32 (Publish) to the broker server. Significantly faster and lighter than conventional HTTP requests.' },
+      { title: 'React.js and Flask Dashboard', desc: 'Python Flask backend powers the REST API and historical data layer, while React.js frontend renders live WebSocket charts without page refresh.' },
+    ],
+  },
+  'modal-p2': {
+    role: 'IoT Robotics & Mobile Developer',
+    title: 'Smart Car 4-Mode Controller',
+    images: [
+      '/assets/z car/zcar.jpg',
+      '/assets/z car/desain.jpg',
+      '/assets/z car/dashboard.png',
+      '/assets/z car/manual.jpeg',
+    ],
+    overview: 'An educational robot car capable of operating in 4 distinct modes, combining mechanical drive systems with cloud software logic. The project demonstrates how remote commands from a smartphone can reach physical hardware with near-zero latency over the internet.',
+    features: [
+      { title: 'ESP32 Core Processor', desc: 'On-board WiFi-capable processor continuously receiving and parsing JSON data streams from the cloud.' },
+      { title: 'L298N Motor Driver', desc: 'Manages high-voltage current from the Li-ion battery to DC motors, protecting the ESP32 circuit from power spikes.' },
+      { title: 'Flutter Android App', desc: 'Native cross-platform app featuring a responsive virtual joystick for real-time directional control.' },
+      { title: 'Firebase Realtime Database', desc: 'Cloud NoSQL intermediary: joystick values update in Firebase, and the ESP32 listens for state changes and reacts instantly across any network, not just local.' },
+      { title: '4 Operating Modes', desc: '(1) Manual Joystick, (2) Line Follower, (3) Obstacle Avoidance via Ultrasonic, (4) Voice Command input.' },
+    ],
+  },
+  'modal-nutricab': {
+    role: 'AI Engineer & Team Lead',
+    title: 'NutriCab Smart Farming System',
+    images: [
+      '/assets/nutricab/cover.jpg',
+      '/assets/nutricab/1.jpg',
+      '/assets/nutricab/2.jpg',
+      '/assets/nutricab/3.jpg',
+      '/assets/nutricab/4.jpg',
+    ],
+    overview: 'NutriCab is a full smart-farming system that monitors plant health and irrigates crops autonomously. As AI Engineer and team lead, I led a four-person team and built the intelligence layer: a Raspberry Pi that runs a YOLO11s vision model locally to diagnose leaf disease in real time, plus the entire edge pipeline linking it to the cloud. Around that core, ESP32 nodes measure soil NPK nutrients and water-tank levels over MQTT and drive relay-controlled pumps, while a React dashboard and an Android app let the grower monitor and control everything remotely over a secured Firebase cloud.',
+    features: [
+      { title: 'YOLO11s Leaf Disease Model', desc: 'I trained and evaluated a custom YOLO11s model that classifies leaves in real time as Healthy, Leaf Spot, or Yellow Virus, rendering live bounding boxes and confidence scores straight from the camera feed.' },
+      { title: '6-Step Leaf Gatekeeper', desc: 'I designed a validation pipeline that confirms a genuine leaf fills the frame before inference runs, filtering background noise and holding accuracy steady across changing light and camera distance.' },
+      { title: 'Raspberry Pi Edge Brain & MQTT', desc: 'I developed the on-device software on the Raspberry Pi: it runs all AI inference locally and orchestrates MQTT messaging between the sensor nodes, the model, and the cloud, so detection never depends on a remote server.' },
+      { title: 'Offline-First Resilience & Router Failover', desc: 'I engineered the pipeline to survive the field, buffering data to SD card when the internet drops, auto-syncing to Firebase on reconnect, and switching between routers automatically so the system stays online.' },
+      { title: 'ESP32 Sensing & Auto-Irrigation', desc: 'ESP32 nodes read soil NPK nutrients and ultrasonic water-tank levels, publishing over MQTT to trigger relay-driven pump watering, closing the loop from sensing to action.' },
+      { title: 'Cloud, Web & Mobile Layer', desc: 'A secured Firebase backend feeds a React dashboard and an Android app with role-based access and OTP login, giving the grower live readings, camera galleries, and remote pump control from anywhere.' },
+    ],
+  },
+  'modal-p3': {
+    role: 'System Architect & Firmware Engineer',
+    title: 'Smart Parking System with Wireless Sensor Network',
+    images: [
+      '/assets/parking/dashboard.jpg',
+      '/assets/parking/hrd.jpg',
+      '/assets/parking/skema.jpg',
+    ],
+    overview: 'How do you monitor 100 parking slots without running cable to every space? A Wireless Sensor Network (WSN) architecture places low-power sensor nodes at each slot that communicate wirelessly, hierarchically reporting slot availability back to a central gateway.',
+    features: [
+      { title: 'WSN Multi-Node Topology', desc: 'Multiple economical ESP8266 WiFi modules distributed in a mesh/star network configuration across the parking lot.' },
+      { title: 'IR Obstacle Sensors', desc: 'Detects car presence via light reflection. More power-efficient than ultrasonic sensors for continuous slot monitoring.' },
+      { title: 'RFID Gate Authentication', desc: 'The entry barrier opens only after validating the card UID against the SQL member database.' },
+      { title: 'ESP Deep Sleep Optimization', desc: 'Firmware keeps sensors in deep sleep when idle, waking only to transmit on status change. Dramatically extends battery life.' },
+      { title: 'Live Status Dashboard', desc: 'Web monitoring panel parsing real-time slot availability. Red for occupied, green for empty.' },
+    ],
+  },
+  'modal-p4': {
+    role: 'Embedded Systems Programmer',
+    title: 'Automatic Smart Dustbin',
+    images: [
+      '/assets/dustbin/buka.png',
+      '/assets/dustbin/sketch.png',
+      '/assets/dustbin/flow.png',
+    ],
+    overview: 'A touchless hardware prototype for hygienic environments like healthcare facilities and public spaces. Operates fully autonomously without any internet connection, making it reliable under all conditions.',
+    features: [
+      { title: 'Arduino Uno Core', desc: 'C++ bare-metal firmware for millisecond-precision control loop. No OS overhead, direct register-level programming.' },
+      { title: 'HC-SR04 Ultrasonic Ranging', desc: 'Triggers a sound pulse (Trigger pin) and measures echo return time to calculate object distance in centimeters using the speed-of-sound constant.' },
+      { title: 'Servo Motor PWM Control', desc: 'Lid opens with a smooth 90-degree rotation via Pulse Width Modulation, not an abrupt on/off relay, which prevents gear damage.' },
+      { title: 'Failsafe Logic', desc: 'Lid stays open while any object is within 15 cm, then closes 3 seconds after the hand moves away, preventing the pinch scenario.' },
+    ],
+  },
+  'modal-p5': {
+    role: 'Network Designer & Simulator',
+    title: 'Smart Coffee Shop Network Simulation',
+    images: [
+      '/assets/cofeeshop/topologi.png',
+      '/assets/cofeeshop/control.png',
+      '/assets/cofeeshop/main.png',
+      '/assets/cofeeshop/end.png',
+    ],
+    overview: 'Before deploying a real network, a complete topology blueprint must be built and tested. This Cisco Packet Tracer simulation models a modern café separating Guest Wi-Fi, Admin LAN, and IoT device subnets for proper security isolation.',
+    features: [
+      { title: 'VLAN and Subnetting', desc: 'Splits the network into isolated IP blocks to prevent broadcast storms and keep IoT devices fully separated from the admin cash register PC.' },
+      { title: 'Gateway and MCU Server', desc: 'Virtual local server receives sensor logs and executes IF-THEN automation conditions for connected devices.' },
+      { title: 'Smart AC Logic', desc: 'Temperature sensor data triggers a rule: If Temp exceeds 25°C, activate high-speed AC cooler. Tested and verified in the simulation.' },
+      { title: 'Motion-Triggered Door', desc: 'Virtual motion detector changes door state to Open automatically when a customer is detected within the sensor zone.' },
+      { title: 'ICMP Path Analysis', desc: 'Ping tests and packet monitoring between subnets verify the router/firewall correctly blocks all unauthorized cross-segment routes.' },
+    ],
+  },
+  'modal-p6': {
+    role: 'Full-Stack Web Engineer',
+    title: 'Library Management System with Laravel MVC',
+    images: [
+      '/assets/libraryz/admin.jpg',
+      '/assets/libraryz/user.jpg',
+      '/assets/libraryz/dashboard.jpg',
+      '/assets/libraryz/1.jpg',
+      '/assets/libraryz/2.jpg',
+    ],
+    overview: 'A mid-scale library system built with strict Laravel MVC architecture to enforce clean, maintainable, and secure code. The relational database design eliminates data anomalies, while the framework provides built-in protection against SQL Injection and XSS.',
+    features: [
+      { title: 'RBAC Authentication', desc: 'Dynamic login portal separating Superadmin, Librarian, and Student sessions, each with unique middleware-enforced access rights.' },
+      { title: 'Advanced MySQL ERD', desc: 'Books, Categories, Authors, Members, and Transactions linked via disciplined Foreign Key constraints and Cascading actions.' },
+      { title: 'Full CRUD with File Upload', desc: 'Backend-validated input forms with automatic book cover image upload handling to a structured server directory.' },
+      { title: 'Automated Fine Calculation', desc: 'Controller algorithm uses Carbon/Date functions to compute late return penalties automatically: days overdue times configured daily rate.' },
+      { title: 'Blade Component System', desc: 'View layer uses reusable Blade component blocks for lightweight, responsive HTML. Fast-loading across all device sizes.' },
+    ],
+  },
+  'modal-p7': {
+    role: 'Native Android Developer',
+    title: 'Cinema App, Watchlist Tracker',
+    images: [
+      '/assets/libraryz/1.jpg',
+    ],
+    overview: 'A native Android app built with Android Studio (Java) targeting a fluid, app-store-quality user experience. The core complexity lies in cross-screen async state synchronization and cloud backup, ensuring a user\'s watchlist survives device changes.',
+    features: [
+      { title: 'RESTful API Integration', desc: 'HTTP GET requests to an external movie database API (TMDB/OMDB), parsing JSON responses into typed Java objects.' },
+      { title: 'Firebase Realtime Database', desc: "Google Firebase SDK stores each user's watchlist tied to their specific user ID, syncing in real-time across devices." },
+      { title: 'RecyclerView and Adapter', desc: 'Smart memory recycling renders hundreds of movie posters efficiently with no OOM freezes and smooth scrolling.' },
+      { title: 'Material Design XML Layout', desc: 'ConstraintLayout UI following Material Design guidelines. Adapts correctly across both phones and tablets.' },
+      { title: 'Complete CRUD', desc: 'Create (add to list), Read (full detail/synopsis view), Update (mark as watched), Delete (remove from library).' },
+    ],
+  },
+  'modal-p9': {
+    role: 'Bash Developer & Linux Automator',
+    title: 'DNS Resolver and Monitoring Script Utility',
+    images: [
+      '/assets/bash/main.jpg',
+      '/assets/bash/1.jpg',
+      '/assets/bash/2.jpg',
+      '/assets/bash/cron.jpg',
+      '/assets/bash/log.jpg',
+    ],
+    overview: 'Manually troubleshooting hundreds of servers daily is unsustainable. This Bash utility automates network status checking on Linux, wrapped in a Text User Interface (TUI) so non-programmer colleagues can use it without touching the command line.',
+    features: [
+      { title: 'TUI with Dialog and Whiptail', desc: 'Menu navigation, input boxes, and progress bars rendered as a graphical-style interface inside the terminal. Far beyond a plain black screen.' },
+      { title: 'Regex and AWK Text Processing', desc: 'Complex pipelines run dig and nslookup against domain lists from external .txt files, then awk filters and parses clean IPv4/IPv6 address strings.' },
+      { title: 'ICMP Ping Status Polling', desc: 'While/For loops execute ping requests to a list of targets, classifying each as UP or DOWN and printing a summary report.' },
+      { title: 'Cron Job Scheduler', desc: 'Script designed to run as a silent background service at set intervals, logging results to timestamped .log files automatically.' },
+    ],
+  },
+  'modal-edu-ccit': {
+    role: 'Professional Certificate in Information Technology — IoT Track',
+    title: 'CCIT, Universitas Indonesia',
+    images: [
+      '/assets/ccit/cover.jpg',
+      '/assets/ccit/1.jpg',
+      '/assets/ccit/2.jpg',
+    ],
+    overview: 'A 2-year professional certification program at the Center for Computing and Information Technology (CCIT), Faculty of Engineering, Universitas Indonesia, with a certified specialization in Internet of Things. Assessed through formative, summative, and criterion-referenced methods, including written tests, case studies, and project presentations, across 23 courses spanning the full computing stack.',
+    features: [
+      { title: 'Programming & Software Foundations', desc: 'Algorithm and Programming, Object-Oriented Programming, Backend Programming, Programming in Java, and Mobile Application Development on Android.' },
+      { title: 'Systems & Networking', desc: 'Operating Systems, Computer Networks, Administering Network Operating Systems, and Linux Server Configuration.' },
+      { title: 'IoT & Embedded Engineering', desc: 'Introduction to IoT, IoT Circuit Design, Electronic Circuit and Sensors, Embedded Systems, and IoT Frameworks and Platforms.' },
+      { title: 'Data & Information Systems', desc: 'Database Design and Implementation, Tools and Techniques to Analyze Data, Big Data and Analytics, Information System Architecture, and Developing Enterprise Information Systems.' },
+      { title: 'Security & Web Application', desc: 'Information System Security and Web Application development, rounding out the secure full-stack coverage of the program.' },
+    ],
+  },
+};
+
+/* ─── COMPONENT ─── */
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [isLoading,     setIsLoading]     = useState(true);
+  const [isMenuOpen,    setIsMenuOpen]    = useState(false);
+  const [scrolled,      setScrolled]      = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
-  const [activeModal, setActiveModal] = useState(null);
+  const [activeModal,   setActiveModal]   = useState(null);
+  const [imgError,      setImgError]      = useState(false);
+  const [heroVisible,    setHeroVisible]    = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [lightboxSrc,    setLightboxSrc]    = useState(null);
 
-  const canvasRef = useRef(null);
+  /* ── Loader ── */
+  useEffect(() => {
+    const t = setTimeout(() => setIsLoading(false), 900);
+    return () => clearTimeout(t);
+  }, []);
 
-  // Efek Typewriter
+  /* ── Hero stagger reveal after loader ── */
   useEffect(() => {
     if (!isLoading) {
-      const typePhrases = [
-        "Network Systems Administrator.",
-        "IoT Hardware Integrator.",
-        "Full-Stack Web Developer.",
-        "Cybersecurity Enthusiast."
-      ];
-      let currentPhraseIndex = 0;
-      let currentCharIndex = 0;
-      let isDeletingWord = false;
-      let typeSpeed = 80;
+      const t = setTimeout(() => setHeroVisible(true), 100);
+      return () => clearTimeout(t);
+    }
+  }, [isLoading]);
 
-      const typeWriterEffect = () => {
-        const textElement = document.getElementById("typewriter");
-        if (!textElement) return;
+  /* ── Scroll: progress bar + section tracking + header ── */
+  useEffect(() => {
+    const onScroll = () => {
+      const total   = document.documentElement.scrollHeight - window.innerHeight;
+      const current = window.scrollY;
+      setScrollProgress(total > 0 ? (current / total) * 100 : 0);
+      setScrolled(current > 60);
+      document.querySelectorAll('section[id]').forEach(s => {
+        if (current >= s.offsetTop - s.clientHeight / 3) setActiveSection(s.id);
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-        const fullPhrase = typePhrases[currentPhraseIndex];
-        
-        if (isDeletingWord) {
-          textElement.innerText = fullPhrase.substring(0, currentCharIndex - 1);
-          currentCharIndex--;
-          typeSpeed = 40; 
-        } else {
-          textElement.innerText = fullPhrase.substring(0, currentCharIndex + 1);
-          currentCharIndex++;
-          typeSpeed = 80; 
-        }
+  /* ── Scroll reveal (IntersectionObserver) ── */
+  useEffect(() => {
+    if (isLoading) return;
+    const obs = new IntersectionObserver(
+      entries => entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+      }),
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, [isLoading]);
 
-        if (!isDeletingWord && currentCharIndex === fullPhrase.length) {
-          isDeletingWord = true;
-          typeSpeed = 2000; 
-        } else if (isDeletingWord && currentCharIndex === 0) {
-          isDeletingWord = false;
-          currentPhraseIndex = (currentPhraseIndex + 1) % typePhrases.length;
-          typeSpeed = 600; 
-        }
-        
-        setTimeout(typeWriterEffect, typeSpeed);
+  /* ── Number counter for stats ── */
+  useEffect(() => {
+    if (isLoading) return;
+    const animate = el => {
+      const target   = parseFloat(el.dataset.target);
+      const isDecimal = el.dataset.decimal === 'true';
+      const suffix   = el.dataset.suffix || '';
+      const duration = 1600;
+      let start;
+      const step = ts => {
+        if (!start) start = ts;
+        const p = Math.min((ts - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 4);
+        el.textContent = (isDecimal ? (eased * target).toFixed(2) : Math.floor(eased * target)) + suffix;
+        if (p < 1) requestAnimationFrame(step);
       };
-      
-      typeWriterEffect();
-    }
+      requestAnimationFrame(step);
+    };
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.querySelectorAll('[data-target]').forEach(animate);
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.7 });
+    const factsEl = document.querySelector('.facts-row');
+    if (factsEl) obs.observe(factsEl);
+    return () => obs.disconnect();
   }, [isLoading]);
 
-  // Loader Timeout
+  /* ── ESC to close modal ── */
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1200);
-    return () => clearTimeout(timer);
+    const onKey = e => {
+      if (e.key === 'Escape') {
+        if (lightboxSrc) setLightboxSrc(null);
+        else if (activeModal) closeModal();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [activeModal, lightboxSrc]);
+
+  const openModal    = id => { setActiveModal(id); document.body.style.overflow = 'hidden'; };
+  const closeModal   = ()  => { setActiveModal(null); document.body.style.overflow = ''; };
+  const overlayClick = e  => { if (e.target.classList.contains('modal-overlay')) closeModal(); };
+
+  /* ── 3D card tilt ── */
+  const onCardTilt = useCallback(e => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top)  / rect.height;
+    const x = px - 0.5;
+    const y = py - 0.5;
+    card.style.transform   = `perspective(1000px) rotateY(${x * 9}deg) rotateX(${y * -9}deg) translateZ(0) scale(1.02)`;
+    card.style.transition   = 'transform 0.12s ease-out, box-shadow 0.2s, border-color 0.2s';
+    card.style.setProperty('--mx', `${px * 100}%`);
+    card.style.setProperty('--my', `${py * 100}%`);
   }, []);
 
-  // Scroll & Intersection Observers
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) setScrolled(true);
-      else setScrolled(false);
-
-      const sections = document.querySelectorAll('section');
-      sections.forEach(sec => {
-        const secTop = sec.offsetTop;
-        const secHeight = sec.clientHeight;
-        if (window.scrollY >= (secTop - secHeight / 3)) {
-          setActiveSection(sec.getAttribute('id'));
-        }
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    // Animasi Reveal (Muncul dari bawah/samping)
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: "0px 0px -50px 0px"
-    };
-
-    const revealObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
-        if(entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => {
-      revealObserver.observe(el);
-    });
-
-    // Animasi Skill Bar
-    const skillObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
-        if(entry.isIntersecting) {
-          const bar = entry.target;
-          const targetWidth = bar.getAttribute('data-width');
-          bar.style.width = targetWidth;
-          observer.unobserve(bar);
-        }
-      });
-    }, { threshold: 0.5 });
-
-    document.querySelectorAll('.skill-bar-fill').forEach(bar => {
-      skillObserver.observe(bar);
-    });
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      revealObserver.disconnect();
-      skillObserver.disconnect();
-    };
+  const onCardReset = useCallback(e => {
+    const card = e.currentTarget;
+    card.style.transform  = '';
+    card.style.transition = 'transform 0.6s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s, border-color 0.2s';
   }, []);
 
-  // 3D Tilt Card Effect
-  useEffect(() => {
-    const tiltCards = document.querySelectorAll('.tilt-card');
-    
-    const handleMouseMove = (e, card) => {
-      if(window.innerWidth > 1024) {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        
-        const rotateX = ((y - centerY) / centerY) * -8;
-        const rotateY = ((x - centerX) / centerX) * 8;
-        
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-      }
-    };
+  /* ── Magnetic CTA button ── */
+  const onMagnet = useCallback(e => {
+    const el   = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const x    = (e.clientX - (rect.left + rect.width  / 2)) * 0.28;
+    const y    = (e.clientY - (rect.top  + rect.height / 2)) * 0.28;
+    el.style.transition = 'background 0.22s, box-shadow 0.22s, transform 0s';
+    el.style.transform  = `translate(${x}px, ${y}px)`;
+  }, []);
 
-    const handleMouseLeave = (card) => {
-      card.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
-      card.style.transition = 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
-    };
+  const onMagnetReset = useCallback(e => {
+    const el = e.currentTarget;
+    el.style.transition = 'background 0.22s, box-shadow 0.22s, transform 0.55s cubic-bezier(0.16,1,0.3,1)';
+    el.style.transform  = '';
+  }, []);
 
-    const handleMouseEnter = (card) => {
-      card.style.transition = 'none'; 
-    };
-
-    tiltCards.forEach(card => {
-      card.addEventListener('mousemove', (e) => handleMouseMove(e, card));
-      card.addEventListener('mouseleave', () => handleMouseLeave(card));
-      card.addEventListener('mouseenter', () => handleMouseEnter(card));
-    });
-
-    return () => {
-      // Cleanup for tilt cards if necessary
-    };
-  }, [isLoading]);
-
-  // Canvas Network Effect
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    
-    let canvasW, canvasH, nodeParticlesArray;
-    let interactPointer = { 
-      x: null, 
-      y: null, 
-      radius: window.innerWidth > 768 ? 180 : 120 
-    };
-    let animationFrameId;
-
-    const handleMouseMove = (e) => {
-      interactPointer.x = e.clientX;
-      interactPointer.y = e.clientY + window.scrollY; 
-    };
-    const handleTouchMove = (e) => {
-      interactPointer.x = e.touches[0].clientX;
-      interactPointer.y = e.touches[0].clientY + window.scrollY;
-    };
-    const handleMouseOut = () => {
-      interactPointer.x = null;
-      interactPointer.y = null;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchmove', handleTouchMove, {passive: true});
-    window.addEventListener('mouseout', handleMouseOut);
-
-    class NetworkNodeParticle {
-      constructor() {
-        this.x = Math.random() * canvasW;
-        this.y = Math.random() * canvasH;
-        this.size = Math.random() * 2 + 1;
-        this.vx = (Math.random() - 0.5) * 0.6;
-        this.vy = (Math.random() - 0.5) * 0.6;
-        this.baseColor = "rgba(0, 246, 255, 0.4)";
-      }
-      
-      updatePosition() {
-        this.x += this.vx;
-        this.y += this.vy;
-        
-        if (this.x > canvasW || this.x < 0) this.vx = -this.vx;
-        if (this.y > canvasH || this.y < 0) this.vy = -this.vy;
-
-        if(interactPointer.x !== null && interactPointer.y !== null) {
-          let dx = interactPointer.x - this.x;
-          let dy = interactPointer.y - this.y;
-          let dist = Math.sqrt(dx * dx + dy * dy);
-          
-          if(dist < interactPointer.radius) {
-            const forceDirectionX = dx / dist;
-            const forceDirectionY = dy / dist;
-            const forceFactor = (interactPointer.radius - dist) / interactPointer.radius;
-            
-            this.x -= forceDirectionX * forceFactor * 3;
-            this.y -= forceDirectionY * forceFactor * 3;
-          }
-        }
-      }
-      
-      renderNode() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = this.baseColor;
-        ctx.fill();
-      }
-    }
-
-    function setupCanvasEnvironment() {
-      canvasW = window.innerWidth;
-      const heroEl = document.getElementById('hero');
-      canvasH = heroEl ? heroEl.offsetHeight : window.innerHeight; 
-      
-      canvas.width = canvasW;
-      canvas.height = canvasH;
-      
-      nodeParticlesArray = [];
-      
-      let densityFactor = (canvasW * canvasH) / 10000;
-      if(canvasW < 768) densityFactor = (canvasW * canvasH) / 8000; 
-      
-      if(densityFactor > 120) densityFactor = 120;
-      
-      for (let i = 0; i < densityFactor; i++) {
-        nodeParticlesArray.push(new NetworkNodeParticle());
-      }
-    }
-
-    function renderNetworkLines() {
-      let lineOpacity = 1;
-      for (let a = 0; a < nodeParticlesArray.length; a++) {
-        for (let b = a; b < nodeParticlesArray.length; b++) {
-          let dx = nodeParticlesArray[a].x - nodeParticlesArray[b].x;
-          let dy = nodeParticlesArray[a].y - nodeParticlesArray[b].y;
-          let distanceSq = (dx * dx) + (dy * dy);
-          
-          let connectThreshold = (canvas.width / 8) * (canvas.height / 8);
-          
-          if (distanceSq < connectThreshold) {
-            lineOpacity = 1 - (distanceSq / connectThreshold);
-            ctx.strokeStyle = `rgba(0, 246, 255, ${lineOpacity * 0.25})`;
-            ctx.lineWidth = 1;
-            
-            ctx.beginPath();
-            ctx.moveTo(nodeParticlesArray[a].x, nodeParticlesArray[a].y);
-            ctx.lineTo(nodeParticlesArray[b].x, nodeParticlesArray[b].y);
-            ctx.stroke();
-          }
-        }
-      }
-    }
-
-    function runEngineLoop() {
-      animationFrameId = requestAnimationFrame(runEngineLoop);
-      ctx.clearRect(0, 0, canvasW, canvasH);
-      
-      for (let i = 0; i < nodeParticlesArray.length; i++) {
-        nodeParticlesArray[i].updatePosition();
-        nodeParticlesArray[i].renderNode();
-      }
-      renderNetworkLines();
-    }
-
-    setupCanvasEnvironment();
-    runEngineLoop();
-
-    const handleResize = () => setupCanvasEnvironment();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('mouseout', handleMouseOut);
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [isLoading]);
-
-  // Modal ESC Key
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if(e.key === "Escape" && activeModal) {
-        closeModal();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeModal]);
-
-  // Handlers
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const closeMenu = () => setIsMenuOpen(false);
-
-  const openModal = (id) => {
-    setActiveModal(id);
-    document.body.style.overflow = 'hidden';
-  };
-
-  const closeModal = () => {
-    setActiveModal(null);
-    document.body.style.overflow = 'auto';
-  };
-
-  const handleModalOverlayClick = (e) => {
-    if (e.target.classList.contains('modal-overlay')) {
-      closeModal();
-    }
-  };
-
-  const sendToWhatsApp = (e) => {
-    e.preventDefault(); 
-    
-    const nameInput = document.getElementById('waName').value.trim();
-    const subjectInput = document.getElementById('waSubject').value.trim();
-    const messageInput = document.getElementById('waMessage').value.trim();
-    
-    const phoneNumber = "6289698349980";
-    const templatePesan = `Halo Izazi,%0A%0ASaya tertarik dengan profil teknis dan portofolio Anda.%0A%0A*---------- INFORMASI PENGIRIM ----------*%0ANama : ${encodeURIComponent(nameInput)}%0ASubjek : ${encodeURIComponent(subjectInput)}%0A%0A*---------- PESAN DETAIL ----------*%0A${encodeURIComponent(messageInput)}%0A%0A-----------------------------------------`;
-    
-    const apiURL = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${templatePesan}`;
-    window.open(apiURL, '_blank');
-  };
-
+  /* ─── RENDER ─── */
   return (
     <div className="App">
+
+      {/* SCROLL PROGRESS */}
+      <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
+
       {/* LOADER */}
-      <div id="loader" style={{ opacity: isLoading ? '1' : '0', visibility: isLoading ? 'visible' : 'hidden' }}>
-        <div className="loader-content">
-          <div className="cyber-loader"></div>
-          <div style={{ color: 'var(--primary)', letterSpacing: '3px', fontWeight: 600 }}>ESTABLISHING CONNECTION...</div>
-        </div>
+      <div id="loader" className={isLoading ? 'active' : ''}>
+        <div className="loader-dot" />
       </div>
 
-      <header id="header" className={scrolled ? 'scrolled' : ''}>
+      {/* HEADER */}
+      <header className={scrolled ? 'scrolled' : ''}>
         <div className="container nav-wrapper">
-          <a href="#hero" className="logo">
-            <div className="logo-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-            </div>
-            IZAZI
-          </a>
-          <div className={`menu-toggle ${isMenuOpen ? 'active' : ''}`} id="mobile-menu-btn" onClick={toggleMenu}>
-            <span></span><span></span><span></span>
+          <a href="#hero" className="logo">Izazi</a>
+
+          <div className={`menu-toggle ${isMenuOpen ? 'active' : ''}`} onClick={() => setIsMenuOpen(o => !o)}>
+            <span /><span /><span />
           </div>
-          <nav className={`nav-links ${isMenuOpen ? 'active' : ''}`} id="nav-links">
-            <a href="#hero" className={`nav-item ${activeSection === 'hero' ? 'active' : ''}`} onClick={closeMenu}>System.Home()</a>
-            <a href="#about" className={`nav-item ${activeSection === 'about' ? 'active' : ''}`} onClick={closeMenu}>About.exe</a>
-            <a href="#skills" className={`nav-item ${activeSection === 'skills' ? 'active' : ''}`} onClick={closeMenu}>Skills.config</a>
-            <a href="#projects" className={`nav-item ${activeSection === 'projects' ? 'active' : ''}`} onClick={closeMenu}>Projects.log</a>
-            <a href="#timeline" className={`nav-item ${activeSection === 'timeline' ? 'active' : ''}`} onClick={closeMenu}>Timeline.dat</a>
-            <a href="#contact" className={`nav-item ${activeSection === 'contact' ? 'active' : ''}`} onClick={closeMenu}>Contact.sh</a>
+
+          <nav className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
+            {NAV.map(({ href, label }) => (
+              <a
+                key={label}
+                href={href}
+                className={activeSection === href.slice(1) ? 'active' : ''}
+                onClick={() => setIsMenuOpen(false)}
+              >{label}</a>
+            ))}
           </nav>
         </div>
       </header>
 
+      {/* ── HERO ── */}
       <section id="hero">
-        <canvas id="canvas-network" ref={canvasRef}></canvas>
+        {/* Gradient orbs */}
+        <div className="hero-orb hero-orb-1" aria-hidden="true" />
+        <div className="hero-orb hero-orb-2" aria-hidden="true" />
+
         <div className="container">
-          <div className="hero-content reveal">
-            <div className="status-badge">
-              <span className="status-dot"></span> System Online & Ready for Deployment
-            </div>
-            <h1 className="hero-title">Muhammad <br/><span className="text-gradient">Izazi Dewanto</span></h1>
-            
-            <div className="hero-subtitle">
-              &gt; <span className="typed-text" id="typewriter"></span><span className="cursor"></span>
-            </div>
-            
-            <p className="hero-desc">
-              Mahasiswa Teknik Multimedia dan Jaringan dengan spesialisasi mendalam pada pengembangan sistem cerdas <i>End-to-End</i>. Saya memadukan keahlian merancang sirkuit <i>hardware</i> IoT, mengkonfigurasi arsitektur jaringan skala <i>enterprise</i>, hingga menulis kode untuk aplikasi <i>Full-Stack</i>.
-            </p>
-            
-            <div className="hero-actions">
-              <a href="#projects" className="btn btn-primary">
-                Deploy Projects 
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '10px' }}><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </a>
-              
-              <div className="social-links">
-                <a href="https://www.linkedin.com/in/izazi-dewanto-670b722a6" target="_blank" rel="noreferrer" className="social-link" title="Connect on LinkedIn">
-                  <svg viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+          <div className="hero-grid">
+
+            {/* Staggered name reveal — no 'reveal' class, handled by heroVisible */}
+            <div className={`hero-text ${heroVisible ? 'hero-visible' : ''}`}>
+              <div className="hero-badge">
+                <span className="badge-dot" />
+                Available for opportunities
+              </div>
+              <h1 className="hero-title">
+                <span className="name-given">Muhammad</span>
+                <span className="name-brand">Izazi</span>
+                <span className="name-family">Dewanto.</span>
+              </h1>
+
+              <p className="hero-role">
+                <span className="role-mark">·</span>
+                Network & IoT Systems Engineer
+              </p>
+
+              <p className="hero-desc">
+                Final-year student at Jakarta State Polytechnic and CCIT UI.
+                I build systems at every layer: embedded firmware, network
+                infrastructure, and full-stack web apps.
+              </p>
+
+              <div className="hero-actions">
+                <a
+                  href="#projects"
+                  className="btn btn-primary"
+                  onMouseMove={onMagnet}
+                  onMouseLeave={onMagnetReset}
+                >
+                  View Work
                 </a>
-                <a href="https://instagram.com/izaaaze" target="_blank" rel="noreferrer" className="social-link" title="Follow Instagram @izaaaze">
-                  <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
+                <div className="social-links">
+                  <a href="https://www.linkedin.com/in/izazi-dewanto-670b722a6" target="_blank" rel="noreferrer" className="social-link" title="LinkedIn">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                  </a>
+                  <a href="https://instagram.com/izaaaze" target="_blank" rel="noreferrer" className="social-link" title="Instagram">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
+
+            <div className="hero-photo reveal-right">
+              <div className="photo-wrapper">
+                {imgError
+                  ? <div className="photo-placeholder">IZ</div>
+                  : <img
+                      src="/assets/profile.jpg"
+                      alt="Muhammad Izazi Dewanto"
+                      onError={() => setImgError(true)}
+                    />
+                }
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      <section id="about">
-        <div className="bg-glow-1"></div>
-        <div className="container">
-          <div className="section-header reveal-left">
-            <span className="section-subtitle">01. Architecting Solutions</span>
-            <h2 className="section-title">Bridging Hardware & Code.</h2>
-          </div>
-          
-          <div className="bento-grid">
-            <div className="bento-item bento-intro glass-panel reveal">
-              <h3 className="highlight-text">Hello World, I'm Izazi.</h3>
-              <div className="about-text">
-                <p>
-                  Sebagai mahasiswa tingkat akhir di Politeknik Negeri Jakarta, saya tidak hanya belajar teori, melainkan <strong>terjun langsung memecahkan masalah kompleks</strong> melalui teknologi yang terintegrasi. 
-                </p>
-                <p>
-                  Fokus utama saya adalah membangun ekosistem <i>End-to-End</i>. Mengapa? Karena perangkat keras yang canggih (IoT) tidak akan maksimal tanpa fondasi jaringan (Network) yang stabil, dan jaringan yang cepat butuh antarmuka (Software) yang brilian agar dapat digunakan manusia.
-                </p>
-                <p>
-                  Saya terbiasa memimpin tim development dengan metodologi <i>Agile</i>, memastikan setiap baris kode, arsitektur database, dan sirkuit mikrokontroler berfungsi presisi serta mengutamakan <strong>Cybersecurity</strong> di setiap layernya.
-                </p>
-              </div>
+      {/* ── MARQUEE STRIP ── */}
+      <div className="marquee-strip">
+        <div className="marquee-track">
+          {[0, 1].map(n => (
+            <div key={n} className="marquee-items" aria-hidden={n === 1 ? 'true' : undefined}>
+              {MARQUEE.map((item, i) => (
+                <React.Fragment key={i}>
+                  <span>{item}</span>
+                  <span className="marquee-sep" />
+                </React.Fragment>
+              ))}
             </div>
+          ))}
+        </div>
+      </div>
 
-            <div className="bento-item bento-philosophy glass-panel reveal-right">
-              <div className="icon-box" style={{ marginBottom: '20px' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              </div>
-              <h3 style={{ fontSize: '1.4rem', marginBottom: '15px' }}>Engineering <br/><span className="text-gradient">Philosophy</span></h3>
-              <p style={{ color: 'var(--text-dark)', lineHeight: 1.7 }}>
-                <i>"Hardware butuh 'otak' agar cerdas. Software butuh 'tubuh' agar berdampak nyata."</i><br/><br/>
-                Sistem terbaik bukanlah yang paling rumit, melainkan yang paling efisien dalam mengkomunikasikan data dari node terbawah hingga ke cloud dashboard.
+      {/* ── ABOUT ── */}
+      <section id="about">
+        <div className="container">
+          <span className="section-tag reveal-left">About</span>
+
+          <div className="about-intro reveal-left">
+            <h2 className="section-heading">Bridging <em>hardware</em><br/>and code.</h2>
+            <div className="about-text">
+              <p>
+                I'm a final-year student at Jakarta State Polytechnic and CCIT Universitas Indonesia.
+                Two concurrent programs that give me both theoretical depth and applied experience
+                across multiple engineering disciplines.
+              </p>
+              <p>
+                From programming microcontrollers and designing circuit boards, to architecting
+                network infrastructure and building full-stack web applications. I work across
+                the entire stack, not just one layer.
               </p>
             </div>
+          </div>
 
-            <div className="bento-item bento-card glass-panel reveal">
-              <div className="icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          {/* Inline counter stats */}
+          <div className="facts-row reveal">
+            {FACTS.map(({ count, decimal, suffix, lbl }) => (
+              <div key={lbl} className="fact-item">
+                <span
+                  className="fact-num"
+                  data-target={count}
+                  data-decimal={decimal}
+                  data-suffix={suffix}
+                >
+                  {decimal ? '0.00' : `0${suffix}`}
+                </span>
+                <span className="fact-label">{lbl}</span>
               </div>
-              <h3>IoT & Embedded</h3>
-              <p>Merancang sirkuit dan program ESP32/Arduino terintegrasi sensor presisi.</p>
-            </div>
+            ))}
+          </div>
 
-            <div className="bento-item bento-card glass-panel reveal" style={{ transitionDelay: '0.1s' }}>
-              <div className="icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          {/* Expertise chips */}
+          <div className="expertise-chips reveal">
+            {EXPERTISE.map(({ icon, title }) => (
+              <div key={title} className="expertise-chip">
+                <span className="chip-icon">{icon}</span>
+                {title}
               </div>
-              <h3>Network Eng.</h3>
-              <p>Desain arsitektur LAN, administrasi Linux server, dan setup DNS/Firewall.</p>
-            </div>
-
-            <div className="bento-item bento-card glass-panel reveal" style={{ transitionDelay: '0.2s' }}>
-              <div className="icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
-              </div>
-              <h3>Full-stack Dev</h3>
-              <p>Membangun Web MVC (Laravel) & antarmuka Mobile (Android/Flutter).</p>
-            </div>
-
-            <div className="bento-item bento-card glass-panel reveal" style={{ transitionDelay: '0.3s' }}>
-              <div className="icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
-              </div>
-              <h3>Cybersecurity</h3>
-              <p>Pemahaman hardening server dan fundamental Web Security (Pentest).</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* ── SKILLS ── */}
       <section id="skills">
         <div className="container">
-          <div className="section-header reveal-left">
-            <span className="section-subtitle">02. Technical Capabilities</span>
-            <h2 className="section-title">Hardware to Cloud.</h2>
+          <div className="skills-header">
+            <span className="section-tag reveal-left">Skills</span>
+            <h2 className="section-heading reveal-left">Technical <em>stack.</em></h2>
           </div>
 
-          <div className="skills-wrapper">
-            <div className="skill-group glass-panel reveal">
-              <h3>
-                <div className="icon-box"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
-                IoT & Edge Computing
-              </h3>
-              
-              <div className="skill-item">
-                <div className="skill-header"><span className="skill-name">Microcontrollers (ESP32, RPi, Arduino)</span><span className="skill-pct">95%</span></div>
-                <div className="skill-bar-bg"><div className="skill-bar-fill" data-width="95%"></div></div>
+          <div className="skills-list">
+            {SKILLS.map(({ title, items }, i) => (
+              <div key={title} className="skill-category reveal" style={{ transitionDelay: `${i * 0.1}s` }}>
+                <h3>{title}</h3>
+                <div className="pill-cloud">
+                  {items.map(s => <span key={s} className="pill">{s}</span>)}
+                </div>
               </div>
-              <div className="skill-item">
-                <div className="skill-header"><span className="skill-name">Sensor Integration & WSN</span><span className="skill-pct">90%</span></div>
-                <div className="skill-bar-bg"><div className="skill-bar-fill" data-width="90%"></div></div>
-              </div>
-              <div className="skill-item">
-                <div className="skill-header"><span className="skill-name">MQTT & IoT Protocols</span><span className="skill-pct">85%</span></div>
-                <div className="skill-bar-bg"><div className="skill-bar-fill" data-width="85%"></div></div>
-              </div>
-              
-              <div className="tools-cloud">
-                <span className="tool-tag">RFID MFRC522</span>
-                <span className="tool-tag">Ultrasonic HC-SR04</span>
-                <span className="tool-tag">ESP8266</span>
-                <span className="tool-tag">DHT Sensors</span>
-                <span className="tool-tag">Circuit Design</span>
-              </div>
-            </div>
-
-            <div className="skill-group glass-panel reveal" style={{ transitionDelay: '0.15s' }}>
-              <h3>
-                <div className="icon-box"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg></div>
-                Software Development
-              </h3>
-              
-              <div className="skill-item">
-                <div className="skill-header"><span className="skill-name">C/C++ (Embedded) & Python (AI/Logic)</span><span className="skill-pct">90%</span></div>
-                <div className="skill-bar-bg"><div className="skill-bar-fill" data-width="90%"></div></div>
-              </div>
-              <div className="skill-item">
-                <div className="skill-header"><span className="skill-name">PHP (Laravel Framework) & SQL</span><span className="skill-pct">85%</span></div>
-                <div className="skill-bar-bg"><div className="skill-bar-fill" data-width="85%"></div></div>
-              </div>
-              <div className="skill-item">
-                <div className="skill-header"><span className="skill-name">Java (Android) & JavaScript (React/Node)</span><span className="skill-pct">80%</span></div>
-                <div className="skill-bar-bg"><div className="skill-bar-fill" data-width="80%"></div></div>
-              </div>
-
-              <div className="tools-cloud">
-                <span className="tool-tag">Firebase RTDB</span>
-                <span className="tool-tag">MySQL/SQLite</span>
-                <span className="tool-tag">Docker</span>
-                <span className="tool-tag">Git/GitHub</span>
-                <span className="tool-tag">YOLOv8 AI</span>
-              </div>
-            </div>
-
-            <div className="skill-group glass-panel reveal" style={{ transitionDelay: '0.3s' }}>
-              <h3>
-                <div className="icon-box"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg></div>
-                Networking & Security
-              </h3>
-              
-              <div className="skill-item">
-                <div className="skill-header"><span className="skill-name">Linux Admin & Bash Automation</span><span className="skill-pct">85%</span></div>
-                <div className="skill-bar-bg"><div className="skill-bar-fill" data-width="85%"></div></div>
-              </div>
-              <div className="skill-item">
-                <div className="skill-header"><span className="skill-name">Cisco Architecture </span><span className="skill-pct">80%</span></div>
-                <div className="skill-bar-bg"><div className="skill-bar-fill" data-width="80%"></div></div>
-              </div>
-              <div className="skill-item">
-                <div className="skill-header"><span className="skill-name">Cybersecurity </span><span className="skill-pct">75%</span></div>
-                <div className="skill-bar-bg"><div className="skill-bar-fill" data-width="75%"></div></div>
-              </div>
-
-              <div className="tools-cloud">
-                <span className="tool-tag">Ubuntu Server / Kali</span>
-                <span className="tool-tag">Apache2</span>
-                <span className="tool-tag">DNS Config</span>
-                <span className="tool-tag">UFW Firewall</span>
-                <span className="tool-tag">TUI Dialog</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* ── PROJECTS ── */}
       <section id="projects">
         <div className="container">
-          <div className="section-header reveal-left">
-            <span className="section-subtitle">03. Portfolios & Case Studies</span>
-            <h2 className="section-title">Engineering Showcase.</h2>
-            <p style={{ color: 'var(--text-dark)', maxWidth: '700px', fontSize: '1.1rem' }}>
-              Kumpulan proyek terpilih yang membuktikan kemampuan implementasi sistem nyata. Mulai dari merakit <i>hardware</i>, merutekan jaringan, hingga membangun antarmuka <i>software</i> yang intuitif.
-            </p>
+          <span className="section-tag reveal-left">Projects</span>
+          <h2 className="section-heading reveal-left">Selected <em>work.</em></h2>
+          <p className="section-desc reveal-left">
+            Systems built across hardware, networks, and software. From prototypes to production.
+          </p>
+
+          {/* Featured 2-col */}
+          <div className="projects-featured">
+            {PROJECTS.filter(p => p.featured).map(p => (
+              <div
+                key={p.id}
+                className="project-card project-featured reveal"
+                onClick={() => openModal(p.id)}
+                onMouseMove={onCardTilt}
+                onMouseLeave={onCardReset}
+              >
+                <div className="project-img-wrap">
+                  <img src={p.img} alt={p.title} />
+                </div>
+                <div className="project-info">
+                  <div className="project-tags">{p.tags.map(t => <span key={t}>{t}</span>)}</div>
+                  <h3>{p.title}</h3>
+                  <p>{p.desc}</p>
+                  <span className="project-cta">View Case Study →</span>
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="featured-projects-grid">
-            <div className="project-card featured-card reveal tilt-card" onClick={() => openModal('modal-p1')}>
-              <div className="featured-badge">⭐ TOP PROJECT</div>
-              <div className="project-img-wrapper">
-                <img src="/assets/classroom/foto.jpg" alt="Thumbnail" className="project-img"/>
-              </div>
-              <div className="project-content">
-                <div className="project-tags"><span>IoT</span><span>YOLOv8 AI</span><span>React.js</span></div>
-                <h3 className="project-title">Smart Monitoring Classroom & Validasi Kehadiran</h3>
-                <p className="project-desc">Sistem cerdas end-to-end untuk pantau okupansi kelas via AI Camera dan validasi dosen menggunakan RFID ESP32 melalui protokol MQTT.</p>
-                <span className="btn-view">View Details <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-              </div>
-            </div>
-
-            <div className="project-card featured-card reveal tilt-card" style={{ transitionDelay: '0.1s' }} onClick={() => openModal('modal-p2')}>
-              <div className="featured-badge">⭐ TOP PROJECT</div>
-              <div className="project-img-wrapper">
-                <img src="/assets/z car/zcar.jpg" alt="Thumbnail" className="project-img"/>
-              </div>
-              <div className="project-content">
-                <div className="project-tags"><span>Robotics</span><span>ESP32</span><span>Flutter Android</span></div>
-                <h3 className="project-title">Smart Car 4-Mode Controller</h3>
-                <p className="project-desc">Pengembangan robot mobil canggih dengan mikrokontroler ESP32, dikendalikan real-time multi-platform via Firebase Database.</p>
-                <span className="btn-view">View Details <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-              </div>
-            </div>
-          </div>
-
-          <h3 className="section-subtitle reveal" style={{ marginBottom: '30px', marginTop: '40px', color: 'var(--text-dark)' }}>Other Case Studies</h3>
-
+          {/* Other 3-col */}
           <div className="projects-grid">
-            <div className="project-card reveal tilt-card" onClick={() => openModal('modal-p3')}>
-              <div className="project-img-wrapper">
-                <img src="/assets/parking/foto.jpeg" alt="Thumbnail" className="project-img"/>
+            {PROJECTS.filter(p => !p.featured).map((p, i) => (
+              <div
+                key={p.id}
+                className="project-card reveal"
+                style={{ transitionDelay: `${i * 0.07}s` }}
+                onClick={() => openModal(p.id)}
+                onMouseMove={onCardTilt}
+                onMouseLeave={onCardReset}
+              >
+                <div className="project-img-wrap">
+                  <img src={p.img} alt={p.title} />
+                </div>
+                <div className="project-info">
+                  <div className="project-tags">{p.tags.map(t => <span key={t}>{t}</span>)}</div>
+                  <h3>{p.title}</h3>
+                  <span className="project-cta">View Details →</span>
+                </div>
               </div>
-              <div className="project-content">
-                <div className="project-tags"><span>WSN</span><span>ESP8266</span><span>Sensors</span></div>
-                <h3 className="project-title">Sistem Parkir Pintar Berbasis WSN IoT</h3>
-                <p className="project-desc">Arsitektur Wireless Sensor Network menggunakan node ESP8266, sensor Infrared, dan RFID untuk manajemen lahan parkir efisien.</p>
-                <span className="btn-view">View Details <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-              </div>
-            </div>
-
-            <div className="project-card reveal tilt-card" style={{ transitionDelay: '0.1s' }} onClick={() => openModal('modal-p4')}>
-              <div className="project-img-wrapper">
-                <img src="/assets/dustbin/dustbin.png" alt="Thumbnail" className="project-img"/>
-              </div>
-              <div className="project-content">
-                <div className="project-tags"><span>Embedded</span><span>Arduino Uno</span><span>C++</span></div>
-                <h3 className="project-title">Automatic Smart Dustbin</h3>
-                <p className="project-desc">Prototipe hardware kebersihan touchless, presisi mengukur jarak objek menggunakan sensor ultrasonik untuk aktuasi motor servo tutup tong.</p>
-                <span className="btn-view">View Details <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-              </div>
-            </div>
-
-            <div className="project-card reveal tilt-card" style={{ transitionDelay: '0.2s' }} onClick={() => openModal('modal-p5')}>
-              <div className="project-img-wrapper">
-                <img src="/assets/cofeeshop/topologi.png" alt="Thumbnail" className="project-img"/>
-              </div>
-              <div className="project-content">
-                <div className="project-tags"><span>Network Design</span><span>Cisco Packet Tracer</span></div>
-                <h3 className="project-title">Smart Coffee Shop Simulation</h3>
-                <p className="project-desc">Merancang simulasi virtual topologi jaringan IoT tersegmentasi untuk otomasi gedung (AC cerdas berbasis suhu dan pintu motion sensor).</p>
-                <span className="btn-view">View Details <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-              </div>
-            </div>
-
-            <div className="project-card reveal tilt-card" onClick={() => openModal('modal-p6')}>
-              <div className="project-img-wrapper">
-                <img src="/assets/libraryz/dashboard.jpg" alt="Thumbnail" className="project-img"/>
-              </div>
-              <div className="project-content">
-                <div className="project-tags"><span>Laravel PHP</span><span>MySQL</span><span>MVC Architecture</span></div>
-                <h3 className="project-title">Library Management System Web App</h3>
-                <p className="project-desc">Sistem Informasi Perpustakaan skala enterprise dengan arsitektur MVC, mengamankan data dengan Role-Based Access Control (RBAC) Laravel.</p>
-                <span className="btn-view">View Details <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-              </div>
-            </div>
-
-            <div className="project-card reveal tilt-card" style={{ transitionDelay: '0.1s' }} onClick={() => openModal('modal-p7')}>
-              <div className="project-img-wrapper">
-                <img src="/assets/cinemaapp/1.jpg" alt="Thumbnail" className="project-img"/>
-              </div>
-              <div className="project-content">
-                <div className="project-tags"><span>Android Java</span><span>Firebase RTDB</span></div>
-                <h3 className="project-title">Cinema App (My Watchlist Tracker)</h3>
-                <p className="project-desc">Aplikasi mobile native Android pengelolaan database film favorit, tersinkronisasi realtime ke cloud Firebase dengan struktur UI responsif.</p>
-                <span className="btn-view">View Details <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-              </div>
-            </div>
-
-            <div className="project-card reveal tilt-card" onClick={() => openModal('modal-p9')}>
-              <div className="project-img-wrapper">
-                <img src="/assets/bash/main.jpg" alt="Thumbnail" className="project-img"/>
-              </div>
-              <div className="project-content">
-                <div className="project-tags"><span>Bash Scripting</span><span>TUI Linux</span><span>Cronjobs</span></div>
-                <h3 className="project-title">DNS Resolver & Monitoring Script Utility</h3>
-                <p className="project-desc">Memprogram script utility terminal Linux (Bash) interaktif TUI untuk analisis query DNS dan cronjob ping otomatis mendeteksi server down.</p>
-                <span className="btn-view">View Details <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* ── EDUCATION ── */}
       <section id="timeline">
         <div className="container">
-          <div className="section-header reveal-left" style={{ textAlign: 'center', margin: '0 auto 4rem auto' }}>
-            <span className="section-subtitle" style={{ justifyContent: 'center' }}>04. Academic Background</span>
-            <h2 className="section-title">Education & Credentials.</h2>
-          </div>
+          <span className="section-tag reveal-left">Education</span>
+          <h2 className="section-heading reveal-left">Academic <em>background.</em></h2>
 
-          <div className="timeline-wrapper">
-            <div className="timeline-item reveal-left">
-              <div className="timeline-dot"></div>
-              <div className="timeline-content">
-                <span className="timeline-date">2023 - Sekarang</span>
-                <h3 className="timeline-title">Politeknik Negeri Jakarta</h3>
-                <h4 className="timeline-subtitle">Diploma IV Teknik Multimedia dan Jaringan</h4>
-                <p style={{ color: 'var(--text-dark)', fontSize: '1rem', lineHeight: 1.6 }}>
-                  Fokus akademik komprehensif pada rekayasa infrastruktur jaringan skala menengah-besar, pemrograman berorientasi objek, keamanan siber dasar, dan arsitektur sistem tersebar.
-                  <br/><br/><strong style={{ color: 'var(--primary)' }}>Pencapaian: IPK 3.89 / 4.0</strong> | Depok, Jawa Barat.
-                </p>
-              </div>
+          <div className="edu-grid edu-grid-2">
+            <div className="edu-card reveal">
+              <span className="edu-period">2023 – Present</span>
+              <h3>Jakarta State Polytechnic</h3>
+              <h4>Diploma IV, Multimedia and Network Engineering</h4>
+              <p>A four-year applied engineering program centered on network infrastructure, IoT systems, cybersecurity, and full-stack development. Still an active student here, I've paired every course with hands-on lab work, building and deploying real systems rather than just studying the theory.</p>
+              <div className="edu-badge">GPA 3.89 / 4.0</div>
             </div>
 
-            <div className="timeline-item reveal-right">
-              <div className="timeline-dot"></div>
-              <div className="timeline-content">
-                <span className="timeline-date">2023 - 2025</span>
-                <h3 className="timeline-title">CCIT Fakultas Teknik Universitas Indonesia</h3>
-                <h4 className="timeline-subtitle">Internet-based System Automation (ISA)</h4>
-                <p style={{ color: 'var(--text-dark)', fontSize: '1rem', lineHeight: 1.6 }}>
-                  Pendalaman intensif dalam perancangan sistem otomatisasi berbasis Internet of Things (IoT). Menguasai integrasi mikrokontroler dengan cloud database dan pengembangan web pendukung.
-                  <br/><br/><strong style={{ color: 'var(--primary)' }}>Pencapaian: IPK 3.89 / 4.0</strong> | Depok, Jawa Barat.
-                </p>
+            <div
+              className="edu-card edu-card-clickable reveal"
+              style={{ transitionDelay: '0.1s' }}
+              onClick={() => openModal('modal-edu-ccit')}
+            >
+              <div className="edu-img-wrap">
+                <img src="/assets/ccit/cover.jpg" alt="CCIT Universitas Indonesia" />
               </div>
-            </div>
-
-            <div className="timeline-item reveal-left">
-              <div className="timeline-dot" style={{ background: 'var(--primary)' }}></div>
-              <div className="timeline-content" style={{ borderColor: 'var(--primary)', boxShadow: '0 0 30px rgba(0, 246, 255, 0.1)' }}>
-                <span className="timeline-date" style={{ background: 'var(--primary)', color: 'var(--bg-base)' }}>Sertifikasi Profesional Terverifikasi</span>
-                <h3 className="timeline-title">Licenses & Credentials</h3>
-                <ul className="cert-list">
-                  <li><strong>Robotic: Internet of Things</strong> — BISA AI Academy (Juli 2025)</li>
-                  <li><strong>Basic Web Security Pentester & Hacking</strong> — (September 2025)</li>
-                  <li><strong>Junior Cyber Security</strong> — Digitalent Scholarship Kementerian Kominfo RI (2025)</li>
-                  <li><strong>Introduction to IoT</strong> — Cisco Networking Academy (November 2024)</li>
-                  <li><strong>Introduction to Cybersecurity</strong> — Cisco Networking Academy (Juli 2024)</li>
-                  <li><strong>HCIA-Datacon V1.0 Course</strong> — Huawei ICT Academy</li>
-                  <li><strong>Cognitive Class Data Science</strong> — Methodology, 101, & Tools IBM</li>
-                </ul>
+              <div className="edu-content">
+                <span className="edu-period">2023 to 2025</span>
+                <h3>CCIT, Universitas Indonesia</h3>
+                <h4>Professional Certificate, Information Technology — IoT Track</h4>
+                <p>A 2-year continuing education program at the Center for Computing and Information Technology (CCIT), Faculty of Engineering, Universitas Indonesia. Covered the full computing stack from programming and databases to networking, embedded systems, and IoT platforms.</p>
+                <div className="edu-badge">GPA 3.39 / 4.0</div>
+                <span className="edu-cta">View Details →</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="contact">
+      {/* ── CERTIFICATIONS ── */}
+      <section id="certs">
         <div className="container">
-          <div className="section-header reveal-left">
-            <span className="section-subtitle">05. Initiation Protocol</span>
-            <h2 className="section-title">Let's Build Together.</h2>
+          <span className="section-tag reveal-left">Certifications</span>
+          <h2 className="section-heading reveal-left">Licenses &amp; <em>credentials.</em></h2>
+          <p className="section-desc reveal-left">
+            Verified certifications across networking, cybersecurity, and IoT. Click any card to view the full certificate.
+          </p>
+
+          <div className="certs-grid">
+            {CERTS.map((c, i) => (
+              <div
+                key={c.title}
+                className="cert-item reveal"
+                style={{ transitionDelay: `${(i % 3) * 0.08}s` }}
+                onClick={() => setLightboxSrc(c.img)}
+              >
+                <span className="cert-year">{c.year}</span>
+                <div className="cert-thumb">
+                  <img src={c.img} alt={`${c.title} certificate`} loading="lazy" />
+                </div>
+                <div className="cert-info">
+                  <span className="cert-issuer">{c.issuer}</span>
+                  <h3>{c.title}</h3>
+                  <p>{c.desc}</p>
+                  <span className="cert-view">View certificate →</span>
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="contact-grid">
-            <div className="contact-info reveal-left">
-              <p>Mencari *Engineer* dengan pola pikir pemecahan masalah end-to-end? Baik itu untuk kolaborasi integrasi sensor hardware, optimasi query database, hingga perancangan arsitektur keamanan jaringan, mari kita diskusikan solusinya secara teknis.</p>
-              
-              <div className="contact-cards">
-                <div className="contact-card">
-                  <div className="icon-box">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                  </div>
-                  <div className="contact-detail">
-                    <h4>Email Address</h4>
-                    <a href="mailto:iza6azee@gmail.com">iza6azee@gmail.com</a>
-                  </div>
+          <p className="certs-note reveal">
+            Additional credentials: Huawei HCIA-Datacom · IBM Data Science 101 (Methodology &amp; Tools)
+          </p>
+        </div>
+      </section>
+
+      {/* ── CONTACT ── */}
+      <section id="contact">
+        <div className="container">
+          <span className="section-tag reveal-left">Contact</span>
+
+          <div className="contact-main reveal">
+            <h2 className="section-heading">Get in <em>touch.</em></h2>
+            <p className="contact-sub">
+              Open for internships, freelance work, and full-time roles.
+              If you need someone who works across hardware, networking, and software, reach out.
+            </p>
+
+            <a href="mailto:iza6azee@gmail.com" className="contact-email-big">
+              iza6azee@gmail.com
+            </a>
+
+            <div className="contact-socials">
+              <a
+                href="https://www.linkedin.com/in/izazi-dewanto-670b722a6"
+                target="_blank" rel="noreferrer"
+                className="contact-social-link"
+              >
+                LinkedIn ↗
+              </a>
+              <a
+                href="https://instagram.com/izaaaze"
+                target="_blank" rel="noreferrer"
+                className="contact-social-link"
+              >
+                Instagram ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer>
+        <div className="container">
+          <div className="footer-inner">
+            <span className="footer-logo">Izazi</span>
+            <span className="footer-sep" />
+            <p>© 2025 Muhammad Izazi Dewanto</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* ── MODALS ── */}
+      {Object.entries(MODAL_CONTENT).map(([id, m]) => (
+        <div
+          key={id}
+          className={`modal-overlay ${activeModal === id ? 'active' : ''}`}
+          onClick={overlayClick}
+        >
+          <div className="modal-container">
+            <div className="modal-header">
+              <div>
+                <span className="modal-role">{m.role}</span>
+                <h3>{m.title}</h3>
+              </div>
+              <div className="modal-close" onClick={closeModal}>✕</div>
+            </div>
+
+            <div className="modal-body">
+              {m.images?.length > 0 && (
+                <div className={`modal-gallery ${id === 'modal-edu-ccit' ? 'modal-gallery-docs' : ''}`}>
+                  {m.images.map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt={`${m.title} screenshot ${i + 1}`}
+                      className="gallery-img-zoomable"
+                      onClick={e => { e.stopPropagation(); setLightboxSrc(src); }}
+                    />
+                  ))}
                 </div>
+              )}
 
-                <div className="contact-card">
-                  <div className="icon-box">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                  </div>
-                  <div className="contact-detail">
-                    <h4>Professional Network</h4>
-                    <a href="https://www.linkedin.com/in/izazi-dewanto-670b722a6" target="_blank" rel="noreferrer">linkedin.com/in/izazi-dewanto</a>
-                  </div>
-                </div>
-                
-                <div className="contact-card">
-                  <div className="icon-box">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                  </div>
-                  <div className="contact-detail">
-                    <h4>Instagram</h4>
-                    <a href="https://instagram.com/izaaaze" target="_blank" rel="noreferrer">@izaaaze</a>
-                  </div>
-                </div>
-              </div>
-            </div>
+              <div className="modal-section-title">Project Overview</div>
+              <p className="modal-text">{m.overview}</p>
 
-            <div className="contact-form-container reveal-right">
-              <div className="form-header">
-                <h3>Send a Ping <span style={{ color: 'var(--primary)' }}>_</span></h3>
-                <p>Kirim pesan langsung ke WhatsApp saya secara otomatis.</p>
-              </div>
-              
-              <form id="waForm" className="contact-form" onSubmit={sendToWhatsApp}>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="waName">Identitas Pengirim</label>
-                  <input type="text" id="waName" className="form-control" required placeholder="Contoh: Budi (HRD / Tech Lead)"/>
-                </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="waSubject">Subjek / Keperluan</label>
-                  <input type="text" id="waSubject" className="form-control" required placeholder="Contoh: Tawaran Kolaborasi Proyek Embedded IoT"/>
-                </div>
-                <div className="form-group">
-                  <label className="form-label" htmlFor="waMessage">Pesan Detail</label>
-                  <textarea id="waMessage" className="form-control" required placeholder="Halo Izazi, saya melihat portofolio Anda dan tertarik mendiskusikan..."></textarea>
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%', borderRadius: 'var(--border-radius-sm)' }}>
-                  Execute Message -&gt; WhatsApp 
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '10px' }}><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </section>
+              <div className="modal-section-title">Key Features and Implementation</div>
+              <ul className="modal-feature-list">
+                {m.features.map(f => (
+                  <li key={f.title}>
+                    <div><strong>{f.title}: </strong>{f.desc}</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      ))}
 
-      <footer>
-        <div className="container">
-          <div className="footer-logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '5px' }}><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon></svg>
-            IZAZI<span>.</span>
-          </div>
-          <p className="footer-text">
-            &copy; by : Muhammad Izazi Dewanto
-          </p>
-        </div>
-      </footer>
+      {/* ── LIGHTBOX ── */}
+      {lightboxSrc && (
+        <div className="lightbox-overlay" onClick={() => setLightboxSrc(null)}>
+          <button className="lightbox-close" onClick={() => setLightboxSrc(null)}>✕</button>
+          <img src={lightboxSrc} alt="Enlarged view" onClick={e => e.stopPropagation()} />
+        </div>
+      )}
 
-      {/* MODALS */}
-      <div className={`modal-overlay ${activeModal === 'modal-p1' ? 'active' : ''}`} id="modal-p1" onClick={handleModalOverlayClick}>
-        <div className="modal-container">
-          <div className="modal-header">
-            <div className="modal-header-text">
-              <span className="modal-role">Lead Developer & AI/Hardware Integrator</span>
-              <h3>Smart Monitoring Classroom & Validasi Presensi</h3>
-            </div>
-            <div className="modal-close" onClick={closeModal}>✕</div>
-          </div>
-          <div className="modal-body">
-            <div className="modal-gallery">
-              <img src="/assets/classroom/cara kerja.jpeg" alt="Gallery"/>
-              <img src="/assets/classroom/foto.jpg" alt="Gallery"/>
-              <img src="/assets/classroom/dashboard.jpg" alt="Gallery"/>
-              <img src="/assets/classroom/admin.jpg" alt="Gallery"/>
-              <img src="/assets/classroom/hardware.jpg" alt="Gallery"/>
-              <img src="/assets/classroom/topologi.jpg" alt="Gallery"/>
-              <img src="/assets/classroom/b.jpg" alt="Gallery"/>
-            </div>
-            <div className="modal-section-title">Konsep Arsitektur Sistem</div>
-            <p className="modal-text">Sistem ini direkayasa untuk menyelesaikan inefisiensi pencatatan kehadiran manual serta memastikan efisiensi penggunaan ruang kelas. Dengan mengkombinasikan komputasi kecerdasan buatan (*Edge AI Computing*) di level lokal dan sistem mikrokontroler IoT, data diproses cepat sebelum dikirim ke server pusat.</p>
-            
-            <div className="modal-section-title">Fitur & Implementasi Kunci</div>
-            <ul className="modal-feature-list">
-              <li><strong>Edge AI Object Detection:</strong> Model Deep Learning YOLOv8 di-deploy langsung di Raspberry Pi. Memproses frame video lokal secara real-time untuk menghitung okupansi mahasiswa di kelas tanpa delay internet tinggi.</li>
-              <li><strong>Hardware NodeMCU ESP32:</strong> Bertindak sebagai gateway lokal penerima input kartu identitas.</li>
-              <li><strong>Integrasi RFID MFRC522:</strong> Modul radio frequency di-coding dengan C++ untuk membaca UID (Unique ID) kartu dosen sebagai proses autentikasi kelas aktif.</li>
-              <li><strong>Protokol Lightweight MQTT:</strong> Transmisi data dari ESP32 (Publish) ke server Broker menggunakan payload sangat kecil, mengalahkan performa request HTTP konvensional dalam segi kecepatan.</li>
-              <li><strong>Dashboard Fullstack React + Flask:</strong> Backend dibangun dengan Python Flask untuk logika REST API data historis, sementara Frontend memakai React.js untuk web soket grafik live tanpa refresh.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className={`modal-overlay ${activeModal === 'modal-p2' ? 'active' : ''}`} id="modal-p2" onClick={handleModalOverlayClick}>
-        <div className="modal-container">
-          <div className="modal-header">
-            <div className="modal-header-text">
-              <span className="modal-role">IoT Robotics & Mobile Developer</span>
-              <h3>Smart Car 4-Mode Controller</h3>
-            </div>
-            <div className="modal-close" onClick={closeModal}>✕</div>
-          </div>
-          <div className="modal-body">
-            <div className="modal-gallery">
-              <img src="/assets/z car/zcar.jpg" alt="Robot Fisik"/>
-              <img src="/assets/z car/desain.jpg" alt="Aplikasi Control"/>
-              <img src="/assets/z car/dashboard.png" alt="Komponen"/>
-              <img src="/assets/z car/manual.jpeg" alt="Komponen"/>
-            </div>
-            <div className="modal-section-title">Deskripsi Proyek</div>
-            <p className="modal-text">Pengembangan robot mobil edukatif yang dapat bermanuver dalam 4 mode operasi berbeda. Proyek ini memadukan kelistrikan mekanik motor dengan logika software cloud. Tujuan utamanya adalah mendemonstrasikan bagaimana perintah remote dari smartphone Android dapat diterima oleh hardware fisik dengan latensi nyaris nol via jaringan internet global, bukan sekadar bluetooth lokal.</p>
-            
-            <div className="modal-section-title">Fitur & Arsitektur Sistem</div>
-            <ul className="modal-feature-list">
-              <li><strong>Core Mikrokontroler ESP32:</strong> Otak pemrosesan sinyal WiFi on-board yang menerima stream data json secara kontinu.</li>
-              <li><strong>Sistem Penggerak L298N:</strong> Modul driver motor yang mengelola arus tegangan tinggi dari baterai Li-ion ke dinamo DC tanpa merusak sirkuit ESP32.</li>
-              <li><strong>Mobile App Control UI:</strong> Aplikasi native Android dikembangkan menggunakan framework *Flutter* yang menyediakan *joystick virtual* responsif.</li>
-              <li><strong>Firebase Realtime Database (RTDB):</strong> Digunakan sebagai perantara *Cloud* NoSQL. Saat pengguna menggerakkan joystick di HP, nilai variabel X/Y berubah di Firebase, dan ESP32 di lokasi berbeda me-*listen* perubahan state tersebut secara instan.</li>
-              <li><strong>4 Multi-Mode Logic:</strong> (1) Mode Manual Joystick, (2) Mode Line Follower (Sensor Garis), (3) Mode Obstacle Avoidance (Ultrasonik Otomatis), (4) Mode Voice Command.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className={`modal-overlay ${activeModal === 'modal-p3' ? 'active' : ''}`} id="modal-p3" onClick={handleModalOverlayClick}>
-        <div className="modal-container">
-          <div className="modal-header">
-            <div className="modal-header-text">
-              <span className="modal-role">System Architect & Firmware Engineer</span>
-              <h3>Sistem Parkir Pintar Berbasis WSN IoT</h3>
-            </div>
-            <div className="modal-close" onClick={closeModal}>✕</div>
-          </div>
-          <div className="modal-body">
-            <div className="modal-gallery">
-              <img src="/assets/parking/dashboard.jpg" alt="Maket Parkir"/>
-              <img src="/assets/parking/hrd.jpg" alt="Sensor"/>
-              <img src="/assets/parking/skema.jpg" alt="Dashboard"/>
-            </div>
-            <div className="modal-section-title">Konsep Skalabilitas Jaringan</div>
-            <p className="modal-text">Bagaimana cara memantau 100 slot parkir tanpa menarik kabel ke setiap kotak? Solusinya adalah arsitektur <i>Wireless Sensor Network</i> (WSN). Sistem ini menempatkan sensor mandiri bertenaga kecil (Node) di tiap lokasi yang saling berkomunikasi nirkabel untuk mengirimkan status keterisian slot parkir secara hierarkis menuju *Gateway* pusat.</p>
-            
-            <div className="modal-section-title">Fitur & Arsitektur Hardware</div>
-            <ul className="modal-feature-list">
-              <li><strong>Topologi WSN Multi-Node:</strong> Menggunakan banyak modul WiFi ekonomis ESP8266 terdistribusi yang dikelompokkan dalam mesh/star network.</li>
-              <li><strong>Sensor Infrared (IR) Obstacle:</strong> Diimplementasikan pada tiap node slot parkir untuk mendeteksi pantulan cahaya dari bawah mobil. Jauh lebih hemat daya dibanding ultrasonik.</li>
-              <li><strong>Otentikasi Gerbang RFID:</strong> Palang otomatis hanya terbuka jika sistem memvalidasi UID kartu (mencocokkan data member yang tersimpan di SQL database).</li>
-              <li><strong>Optimasi Deep Sleep ESP:</strong> Firmware ditulis sedemikian rupa agar sensor tidur saat tidak ada mobil dan hanya bangun (transmit Wi-Fi) saat status berubah, memperpanjang umur baterai drastis.</li>
-              <li><strong>Live Status Dashboard:</strong> Web monitoring yang mem-parsing data API ketersediaan slot kosong (Merah: Isi, Hijau: Kosong) secara real-time untuk panel display sekuriti.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className={`modal-overlay ${activeModal === 'modal-p4' ? 'active' : ''}`} id="modal-p4" onClick={handleModalOverlayClick}>
-        <div className="modal-container">
-          <div className="modal-header">
-            <div className="modal-header-text">
-              <span className="modal-role">Embedded Systems Programmer</span>
-              <h3>Automatic Smart Dustbin</h3>
-            </div>
-            <div className="modal-close" onClick={closeModal}>✕</div>
-          </div>
-          <div className="modal-body">
-            <div className="modal-gallery">
-              <img src="/assets/dustbin/dustbin.png" alt="Produk"/>
-              <img src="/assets/dustbin/buka.png" alt="Wiring"/>
-              <img src="/assets/dustbin/sketch.png" alt="Code"/>
-              <img src="/assets/dustbin/flow.png" alt="Code"/>
-            </div>
-            <div className="modal-section-title">Latar Belakang Proyek</div>
-            <p className="modal-text">Prototipe hardware ini merupakan implementasi dasar dari prinsip alat bantu higienis berbasis *touchless environment*. Dirancang untuk area fasilitas kesehatan atau ruang publik, tempat sampah ini sepenuhnya beroperasi secara otonom tanpa memerlukan sambungan internet rumit, menjadikannya andal (*reliable*) di segala kondisi.</p>
-            
-            <div className="modal-section-title">Rincian Teknis & Komponen</div>
-            <ul className="modal-feature-list">
-              <li><strong>Prosesor Pusat Arduino Uno:</strong> Board mikrokontroler mandiri yang ditanamkan kode bahasa C++ (*bare metal firmware*) untuk komputasi loop kontinu kecepatan milidetik.</li>
-              <li><strong>Kalkulasi Ultrasonik HC-SR04:</strong> Mengeluarkan pulsa gelombang suara (Trigger) dan menghitung durasi pantulan balik (Echo). Dikonversi ke satuan centimeter menggunakan rumus kecepatan suara konstan di udara.</li>
-              <li><strong>Motor Servo PWM:</strong> Pembukaan tutup tidak menggunakan on/off relay kasar, melainkan sinyal Pulse Width Modulation. Tutup berotasi 90 derajat perlahan secara halus untuk mencegah kerusakan mekanis gear.</li>
-              <li><strong>Delay & Reset Logic:</strong> Mengandung sistem *failsafe* code. Tutup akan tetap terbuka selama tangan berada dalam radius 15 cm, dan hanya menutup 3 detik setelah objek menjauh, mencegah mekanisme "terjepit".</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className={`modal-overlay ${activeModal === 'modal-p5' ? 'active' : ''}`} id="modal-p5" onClick={handleModalOverlayClick}>
-        <div className="modal-container">
-          <div className="modal-header">
-            <div className="modal-header-text">
-              <span className="modal-role">Network Designer & Simulator</span>
-              <h3>Smart Coffee Shop Network Simulation</h3>
-            </div>
-            <div className="modal-close" onClick={closeModal}>✕</div>
-          </div>
-          <div className="modal-body">
-            <div className="modal-gallery">
-              <img src="/assets/cofeeshop/topologi.png" alt="Topologi"/>
-              <img src="/assets/cofeeshop/control.png" alt="Topologi"/>
-              <img src="/assets/cofeeshop/main.png" alt="Topologi"/>
-              <img src="/assets/cofeeshop/end.png" alt="Topologi"/>
-            </div>
-            <div className="modal-section-title">Konsep Pemisahan Segmen Jaringan</div>
-            <p className="modal-text">Sebelum mengimplementasikan jaringan rumit di dunia nyata, blueprint topologi harus dibuat. Simulasi Cisco Packet Tracer ini merepresentasikan skenario kafe modern yang memisahkan *subnet* antara tamu (Guest Wi-Fi), administrasi kasir (LAN), dan jaringan otomatisasi perangkat (IoT Network) demi keamanan (*security isolation*).</p>
-            
-            <div className="modal-section-title">Detail Skenario & Konfigurasi</div>
-            <ul className="modal-feature-list">
-              <li><strong>VLAN & Subnetting:</strong> Membagi network menjadi beberapa blok IP untuk mencegah *broadcast storm* dan memisahkan device IoT dengan PC Admin Kasir.</li>
-              <li><strong>Home Gateway & MCU Server:</strong> Mengkonfigurasi server lokal virtual yang bertugas menjadi "otak" untuk menerima log sensor dan menjalankan kondisi IF-THEN.</li>
-              <li><strong>Sistem AC Cerdas (Suhu):</strong> Simulasi sensor temperatur yang memancarkan data suhu. Aturan logika diset: *Jika Temp &gt; 25°C, Aktifkan AC Cooler ke kecepatan tinggi*.</li>
-              <li><strong>Pintu Geser Motion:</strong> Menggunakan virtual *Motion Detector*. Saat pelanggan terdeteksi dalam zona area pintu, status perangkat pintu otomatis berubah menjadi "Open".</li>
-              <li><strong>Analisis Jalur IP:</strong> Melakukan tes *Ping* dan pemantauan paket ICMP antar segmen untuk memastikan *firewall/router* memblokir rute yang tidak diinginkan dengan benar.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className={`modal-overlay ${activeModal === 'modal-p6' ? 'active' : ''}`} id="modal-p6" onClick={handleModalOverlayClick}>
-        <div className="modal-container">
-          <div className="modal-header">
-            <div className="modal-header-text">
-              <span className="modal-role">Full Stack Web Engineer</span>
-              <h3>Library Management System (Laravel MVC)</h3>
-            </div>
-            <div className="modal-close" onClick={closeModal}>✕</div>
-          </div>
-          <div className="modal-body">
-            <div className="modal-gallery">
-              <img src="/assets/libraryz/admin.jpg" alt="Dashboard Web"/>
-              <img src="/assets/libraryz/user.jpg" alt="Dashboard Web"/>
-              <img src="/assets/libraryz/dashboard.jpg" alt="Dashboard Web"/>
-              <img src="/assets/libraryz/1.jpg" alt="Dashboard Web"/>
-              <img src="/assets/libraryz/2.jpg" alt="Dashboard Web"/>
-            </div>
-            <div className="modal-section-title">Pembangunan Sistem Skala Menengah</div>
-            <p className="modal-text">Perpustakaan modern memerlukan database relasional (*RDBMS*) yang terstruktur kuat untuk menghindari duplikasi (*anomali data*). Aplikasi ini dikembangkan murni menggunakan framework *PHP Laravel* yang menegakkan standar desain MVC (Model-View-Controller) untuk kode yang bersih, mudah dikelola, dan aman dari kerentanan umum seperti SQL Injection.</p>
-            
-            <div className="modal-section-title">Arsitektur & Modul Fitur Utama</div>
-            <ul className="modal-feature-list">
-              <li><strong>Sistem Autentikasi RBAC:</strong> Login portal yang dinamis memisahkan sesi *Superadmin*, *Pustakawan*, dan *Siswa*. Masing-masing memiliki hak akses *middleware* direktori yang berbeda.</li>
-              <li><strong>Manajemen ERD MySQL Lanjut:</strong> Tabel Buku, Kategori, Penulis, Member, dan Transaksi direlasikan melalui struktur *Foreign Key* dan aksi *Cascading* yang disiplin.</li>
-              <li><strong>CRUD Kompleks:</strong> Form input pengelolaan inventori yang dilengkapi validasi backend kuat. Termasuk fitur upload gambar cover buku secara otomatis ke direktori server.</li>
-              <li><strong>Otomatisasi Hitung Denda:</strong> Algoritma controller menggunakan fungsi Carbon/Date untuk menghitung selisih hari keterlambatan pengembalian dikalikan tarif denda yang terkonfigurasi.</li>
-              <li><strong>Blade Templating Engine:</strong> Antarmuka *View* dikompresi menjadi blok-blok *component* yang dapat didaur ulang, menjadikan load HTML sangat ringan dan *responsive* di segala *device*.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className={`modal-overlay ${activeModal === 'modal-p7' ? 'active' : ''}`} id="modal-p7" onClick={handleModalOverlayClick}>
-        <div className="modal-container">
-          <div className="modal-header">
-            <div className="modal-header-text">
-              <span className="modal-role">Native Android Developer</span>
-              <h3>Cinema App (My Watchlist App)</h3>
-            </div>
-            <div className="modal-close" onClick={closeModal}>✕</div>
-          </div>
-          <div className="modal-body">
-            <div className="modal-gallery">
-              <img src="/assets/cinemaapp/1.jpg" alt="Homescreen"/>
-              <img src="/assets/cinemaapp/1.jpg" alt="Homescreen"/>
-            </div>
-            <div className="modal-section-title">Fokus Pengembangan Aplikasi Mobile</div>
-            <p className="modal-text">Diprogram secara *Native* menggunakan Android Studio (Java/Kotlin), Cinema App membidik pengalaman pengguna (*UX*) yang *fluid* setara ekosistem aplikasi hiburan top. Inti kerumitannya terletak pada sinkronisasi status asinkron lintas layar (contoh: Saat user pindah ke handphone baru, *Watchlist* tetap aman karena di-backup via *Cloud API*).</p>
-            
-            <div className="modal-section-title">Teknologi & Analisis Fitur</div>
-            <ul className="modal-feature-list">
-              <li><strong>Integrasi RESTful API:</strong> Melakukan protokol HTTP GET request ke database eksternal penyedia layanan film pihak ketiga (seperti TMDB/OMDB) lalu memparsing file JSON ke dalam Java Object.</li>
-              <li><strong>Firebase Realtime Database:</strong> Implementasi Google Firebase SDK untuk menyimpan relasi daftar film (*Watchlist*) ke spesifik ID pengguna secara *real-time*.</li>
-              <li><strong>RecyclerView & Adapter:</strong> Manajemen rendering memori secara cerdas menggunakan RecyclerView. Memuat ratusan poster film tanpa membuat handphone *freeze* / *Out of Memory*.</li>
-              <li><strong>Desain XML Responsif:</strong> UI Layout *ConstraintLayout* diatur mengikuti pedoman *Material Design*, membuat elemen aplikasi tidak *stretch* hancur baik di HP maupun Tablet.</li>
-              <li><strong>Operasi CRUD Lengkap:</strong> (Create) Tambah list, (Read) Tampil detail sinopsis, (Update) Tandai sebagai 'Sudah Ditonton', (Delete) Hapus dari *library*.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className={`modal-overlay ${activeModal === 'modal-p9' ? 'active' : ''}`} id="modal-p9" onClick={handleModalOverlayClick}>
-        <div className="modal-container">
-          <div className="modal-header">
-            <div className="modal-header-text">
-              <span className="modal-role">Bash Developer & Automator</span>
-              <h3>DNS Resolver & Monitoring Script Utility</h3>
-            </div>
-            <div className="modal-close" onClick={closeModal}>✕</div>
-          </div>
-          <div className="modal-body">
-            <div className="modal-gallery">
-              <img src="/assets/bash/main.jpg" alt="TUI"/>
-              <img src="/assets/bash/1.jpg" alt="TUI"/>
-              <img src="/assets/bash/2.jpg" alt="TUI"/>
-              <img src="/assets/bash/cron.jpg" alt="TUI"/>
-              <img src="/assets/bash/log.jpg" alt="TUI"/>
-            </div>
-            <div className="modal-section-title">Otomatisasi Pekerjaan Network Engineer</div>
-            <p className="modal-text">Melakukan *troubleshooting* ratusan server secara manual setiap hari sangatlah tidak efisien. Skrip Bash ini diciptakan khusus di lingkungan operasi sistem kernel Linux (`.sh`) untuk otomatisasi *checking* status jaringan. Agar lebih ramah (*user-friendly*) bagi kolega non-programmer, program dibungkus menggunakan antarmuka grafis di dalam terminal (*TUI*).</p>
-            
-            <div className="modal-section-title">Struktur Program & Perintah Logika</div>
-            <ul className="modal-feature-list">
-              <li><strong>Desain Text-User Interface (TUI):</strong> Tidak sekadar layar hitam, navigasi menu dan kotak input dirender indah menggunakan library command-line *Dialog* / *Whiptail*.</li>
-              <li><strong>Regex & AWK Text Processing:</strong> Program menggunakan algoritma *piping* kompleks. Command `dig` atau `nslookup` dieksekusi massal berdasar daftar file TXT eksternal, dan command `awk` digunakan untuk memfilter dan membersihkan string IP (*IPv4 & IPv6*) yang dihasilkan.</li>
-              <li><strong>Status Polling (ICMP Ping):</strong> Loop bersyarat (While/For logic) mengeksekusi request `ping` ke deretan target untuk memvalidasi apakah domain terhubung ke server yang aktif (Status: UP) atau mati (Status: DOWN).</li>
-              <li><strong>Cron Job Task Scheduler:</strong> Skrip dirancang untuk dapat dijalankan secara tersembunyi (*background service*) setiap interval beberapa menit menggunakan fitur *cron daemon*, otomatis membuang hasil cek ke format laporan `.log` berbasis tanggal (*Timestamping*).</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    </div>
+  );
 }
 
 export default App;
